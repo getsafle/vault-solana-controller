@@ -22,9 +22,23 @@ class SOLHdKeyring {
   }
 
   async exportPrivateKey() {
-
     const accountDetails = this.wallet
     return accountDetails.secretKey.toString('hex')
+  }
+
+  async signTransaction(transaction) {
+    const txn = new solanaWeb3.Transaction().add(transaction)
+    const signer = {
+      publicKey: this.wallet.publicKey,
+      secretKey: this.wallet.secretKey
+    }
+    return txn.sign([signer])
+  }
+
+  async signMessage() {
+  }
+
+  async getAccounts() {
 
   }
 
