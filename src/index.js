@@ -1,41 +1,59 @@
-const SOLHdKeyring = require('./coin/solana')
-
-const { getCoinInstance } = require('./utils/helper')
+const { getSolanaInstance } = require('./utils/helper')
 
 class CoinHDWallets {
+
   constructor(mnemonic) {
     this.mnemonic = mnemonic
-    this.solanoGenerate()
+    this.instance = getSolanaInstance(this.mnemonic)
   }
 
-  async generateWallet(coinName) {
-    const { hdWallet, coinInstance } = await getCoinInstance(coinName, this.mnemonic)
-    const wallet = coinInstance.generateWallet(hdWallet)
+  async createSolanaInstance () {
+    const instance = 
+    this.instance = instance
+  }
 
+  async generateWallet() {
+    const wallet = await this.instance.generateWallet()
+    console.log("wallet " , wallet)
     return wallet
   }
 
-  async exportPrivateKey(coinName) {
-    const { hdWallet, coinInstance } = await getCoinInstance(coinName, this.mnemonic)
-    const wallet = coinInstance.exportPrivateKey(hdWallet)
-
-    return wallet
+  async exportPrivateKey() {
+    const privateKey = await this.instance.exportPrivateKey()
+    console.log(" privateKey ", privateKey)
+    return privateKey
   }
 
-  async solanoGenerate() {
-    const coinInstance = new SOLHdKeyring(this.mnemonic)
-    console.log("coinInstance ", coinInstance)
+  async signTransaction(transaction) {
+    const txn = await this.instance.signTransaction(transaction)
+    console.log(" txn ", txn)
+    return txn
+  }
 
-    const wallet = await coinInstance.generateWallet()
-    console.log("wallet ", wallet)
+  async signMessage(message) {
+    const msgSig = await this.instance.signMessage(message)
+    console.log(" msgSig ", msgSig)
+    return msgSig
+  }
 
-    const walletPK = await coinInstance.exportPrivateKey()
-    console.log(" walletPK ", walletPK)
+  async getAccounts() {
+    const account = await this.instance.getAccounts()
+    console.log(" account ", account)
+    return account
   }
 
 }
 
-// new CoinHDWallets('affair entry detect broom axis crawl found valve bamboo taste broken hundred')
-new CoinHDWallets('begin pyramid grit rigid mountain stamp legal item result peace wealth supply satoshi elegant roof identify furnace march west chicken pen gorilla spot excuse')
+const wallet = new CoinHDWallets('affair entry detect broom axis crawl found valve bamboo taste broken hundred')
+// const wallet = new CoinHDWallets('begin pyramid grit rigid mountain stamp legal item result peace wealth supply satoshi elegant roof identify furnace march west chicken pen gorilla spot excuse')
 
-module.exports = { SOLHdKeyring, CoinHDWallets }
+console.log(wallet.mnemonic)
+console.log(wallet.instance)
+
+wallet.generateWallet()
+wallet.exportPrivateKey()
+// wallet.signTransaction()
+wallet.signMessage("APPLE")
+wallet.getAccounts()
+
+module.exports = CoinHDWallets
