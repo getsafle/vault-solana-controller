@@ -35,14 +35,12 @@ returns: `private_key`
 
 #### signTransaction(transaction: *Array<Transaction | TransactionInstruction | TransactionInstructionCtorFields>* )
 This function is used to sign a transaction off-chain and then send it to the network.
-
 parameters: 
 
 ```
 name: transaction,
 type: Transaction : new Transaction(opts?: TransactionCtorFields) | TransactionInstruction : new TransactionInstruction(opts: TransactionInstructionCtorFields) | TransactionInstructionCtorFields : {data?: Buffer; keys: AccountMeta[]; programId: PublicKey}
 ```
-
 returns: `{address : wallet_address}`
 
 
