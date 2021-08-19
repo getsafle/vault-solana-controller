@@ -22,29 +22,29 @@ returns: `{address : wallet_address}`
 
 #### exportPrivateKey()
 This function is used to export the provate key for the generated address. <br />
-parameters: - <br />
-returns: `private_key`
+**parameters:** - <br />
+**returns:** `private_key`
 
 #### signTransaction(transaction: *Array<Transaction | TransactionInstruction | TransactionInstructionCtorFields>* )
 This function is used to sign a transaction off-chain and then send it to the network.<br />
-parameters: 
+**parameters:** 
 ```
 name: transaction,
 type: Transaction : new Transaction(opts?: TransactionCtorFields) | TransactionInstruction : new TransactionInstruction(opts: TransactionInstructionCtorFields) | TransactionInstructionCtorFields : {data?: Buffer; keys: AccountMeta[]; programId: PublicKey}
 ```
-returns: `{address : wallet_address}`
+**returns:** `{address : wallet_address}`
 
 
 #### signMessage(message: *string* )
 This function is used to sign a message. <br />
-parameters: 
+**parameters:** 
 ```
 name: message
 type: string
 ```
-returns: `signed_message`
+**returns:** `signed_message`
 
 #### getAccounts()
 This function is used to get the wallet address. <br />
-parameters: - <br />
-returns: `{address : wallet_address}`
+**parameters:** - <br />
+**returns:** `{address : wallet_address}`
