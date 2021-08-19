@@ -1,59 +1,67 @@
-const { getSolanaInstance } = require('./utils/helper')
+const bip39 = require('bip39');
+const solanaWeb3 = require('@solana/web3.js');
+const { derivePath } = require('ed25519-hd-key');
+const nacl = require('tweetnacl');
+const bs58 = require('bs58');
 
-class CoinHDWallets {
+const { solana: { HD_PATH } } = require('./config')
 
+class SOLHdKeyring {
   constructor(mnemonic) {
     this.mnemonic = mnemonic
-    this.instance = getSolanaInstance(this.mnemonic)
-  }
-
-  async createSolanaInstance () {
-    const instance = 
-    this.instance = instance
+    this.hdPath = HD_PATH
+    this.wallet = null
+    this.address = null
   }
 
   async generateWallet() {
-    const wallet = await this.instance.generateWallet()
-    console.log("wallet " , wallet)
-    return wallet
+    const accountDetails = this._manageSeedandGetAccountDetails()
+    this.wallet = accountDetails
+    this.address = accountDetails.publicKey.toString()
+    return { address: this.address }
   }
 
   async exportPrivateKey() {
-    const privateKey = await this.instance.exportPrivateKey()
-    console.log(" privateKey ", privateKey)
-    return privateKey
+    const accountDetails = this.wallet
+    return accountDetails.secretKey.toString('hex')
   }
 
   async signTransaction(transaction) {
-    const txn = await this.instance.signTransaction(transaction)
-    console.log(" txn ", txn)
-    return txn
+    const txn = new solanaWeb3.Transaction().add(transaction)
+    const signer = {
+      publicKey: this.wallet.publicKey,
+      secretKey: this.wallet.secretKey
+    }
+    txn.sign(signer)
+    return txn;
   }
 
   async signMessage(message) {
-    const msgSig = await this.instance.signMessage(message)
-    console.log(" msgSig ", msgSig)
-    return msgSig
+    return bs58.encode(nacl.sign.detached(bs58.decode(message), this.wallet.secretKey));
   }
 
   async getAccounts() {
-    const account = await this.instance.getAccounts()
-    console.log(" account ", account)
-    return account
+    const accountDetails = this.wallet;
+    return { address: accountDetails.publicKey.toString() }
+  }
+
+  /* PRIVATE METHODS */
+
+  _getAccountDetailsFromSeed(seed, dPath) {
+    const derivedSeed = derivePath(dPath, seed).key;
+    const account = new solanaWeb3.Account(nacl.sign.keyPair.fromSeed(derivedSeed).secretKey);
+    return account;
+  }
+
+  _manageSeedandGetAccountDetails() {
+    const normalizeMnemonic = this.mnemonic.trim().split(/\s+/g).join(" ")
+    const seedHex = bip39.mnemonicToSeedHex(normalizeMnemonic)
+    return this._getAccountDetailsFromSeed(
+      Buffer.from(seedHex, 'hex'),
+      this.hdPath,
+    );
   }
 
 }
 
-const wallet = new CoinHDWallets('affair entry detect broom axis crawl found valve bamboo taste broken hundred')
-// const wallet = new CoinHDWallets('begin pyramid grit rigid mountain stamp legal item result peace wealth supply satoshi elegant roof identify furnace march west chicken pen gorilla spot excuse')
-
-console.log(wallet.mnemonic)
-console.log(wallet.instance)
-
-wallet.generateWallet()
-wallet.exportPrivateKey()
-// wallet.signTransaction()
-wallet.signMessage("APPLE")
-wallet.getAccounts()
-
-module.exports = CoinHDWallets
+module.exports = SOLHdKeyring
