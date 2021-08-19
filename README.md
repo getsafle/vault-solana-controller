@@ -34,7 +34,7 @@ parameters: -
 returns: `private_key`
 
 #### signTransaction(transaction: *Array<Transaction | TransactionInstruction | TransactionInstructionCtorFields>* )
-This function is used to sign a transaction off-chain and then send it to the network.
+This function is used to sign a transaction off-chain and then send it to the network.<br />
 parameters: 
 
 ```
