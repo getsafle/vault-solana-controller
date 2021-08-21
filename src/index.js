@@ -23,7 +23,7 @@ class SOLHdKeyring {
 
   async exportPrivateKey() {
     const accountDetails = this.wallet
-    return accountDetails.secretKey.toString('hex')
+    return { privateKey: accountDetails.secretKey.toString('hex') };
   }
 
   async signTransaction(transaction) {
@@ -33,11 +33,11 @@ class SOLHdKeyring {
       secretKey: this.wallet.secretKey
     }
     txn.sign(signer)
-    return txn;
+    return { signedTransaction: txn };
   }
 
   async signMessage(message) {
-    return bs58.encode(nacl.sign.detached(bs58.decode(message), this.wallet.secretKey));
+    return { signedMessage: bs58.encode(nacl.sign.detached(bs58.decode(message), this.wallet.secretKey)) };
   }
 
   async getAccounts() {
