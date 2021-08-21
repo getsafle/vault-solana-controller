@@ -1,5 +1,5 @@
 {
-  "name": "@getsafle/solana-wallets",
+  "name": "@getsafle/solana-wallet-controller",
   "version": "1.0.0",
   "description": "",
   "engines": {
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/getsafle/Solana-wallet.git"
+    "url": "git+https://github.com/getsafle/solana-wallet-controller.git"
   },
   "keywords": [
     "solana",
@@ -22,9 +22,9 @@
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/getsafle/Solana-wallet/issues"
+    "url": "https://github.com/getsafle/solana-wallet-controller/issues"
   },
-  "homepage": "https://github.com/getsafle/Solana-wallet#readme",
+  "homepage": "https://github.com/getsafle/solana-wallet-controller#readme",
   "dependencies": {
     "@solana/web3.js": "^1.24.0",
     "bip39": "^2.2.0",
