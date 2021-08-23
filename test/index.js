@@ -10,4 +10,9 @@ describe('Initialize wallet ', () => {
     it("Should have correct mnemonic", () => {
         assert.equal(solWallet.mnemonic, HD_WALLET_12_MNEMONIC, "Incorrect hd wallet" )
     })
+
+    it("Should generateWallet ", async () => {
+        const wallet = await solWallet.generateWallet()
+        // assert.equal(solWallet.mnemonic, HD_WALLET_12_MNEMONIC, "Incorrect hd wallet" )
+    })
 })

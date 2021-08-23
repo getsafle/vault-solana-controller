@@ -1,10 +1,10 @@
 const bip39 = require('bip39');
 const solanaWeb3 = require('@solana/web3.js');
-const { derivePath } = require('ed25519-hd-key');
 const nacl = require('tweetnacl');
 const bs58 = require('bs58');
 
 const { solana: { HD_PATH } } = require('./config')
+const { _manageSeedandGetAccountDetails } = require('./helper/index')
 
 class SOLHdKeyring {
   constructor(mnemonic) {
@@ -15,23 +15,19 @@ class SOLHdKeyring {
   }
 
   async generateWallet() {
-    const accountDetails = this._manageSeedandGetAccountDetails()
-    this.wallet = accountDetails
+    const accountDetails = _manageSeedandGetAccountDetails(this.mnemonic, this.hdPath)
     this.address = accountDetails.publicKey.toString()
     return { address: this.address }
   }
 
   async exportPrivateKey() {
-    const accountDetails = this.wallet
+    const accountDetails = _manageSeedandGetAccountDetails(this.mnemonic, this.hdPath)
     return { privateKey: accountDetails.secretKey.toString('hex') };
   }
 
   async signTransaction(transaction) {
     const txn = new solanaWeb3.Transaction().add(transaction)
-    const signer = {
-      publicKey: this.wallet.publicKey,
-      secretKey: this.wallet.secretKey
-    }
+    const signer = _manageSeedandGetAccountDetails(this.mnemonic, this.hdPath)
     txn.sign(signer)
     return { signedTransaction: txn };
   }
@@ -41,25 +37,7 @@ class SOLHdKeyring {
   }
 
   async getAccounts() {
-    const accountDetails = this.wallet;
-    return { address: accountDetails.publicKey.toString() }
-  }
-
-  /* PRIVATE METHODS */
-
-  _getAccountDetailsFromSeed(seed, dPath) {
-    const derivedSeed = derivePath(dPath, seed).key;
-    const account = new solanaWeb3.Account(nacl.sign.keyPair.fromSeed(derivedSeed).secretKey);
-    return account;
-  }
-
-  _manageSeedandGetAccountDetails() {
-    const normalizeMnemonic = this.mnemonic.trim().split(/\s+/g).join(" ")
-    const seedHex = bip39.mnemonicToSeedHex(normalizeMnemonic)
-    return this._getAccountDetailsFromSeed(
-      Buffer.from(seedHex, 'hex'),
-      this.hdPath,
-    );
+    return { address: this.address }
   }
 
 }
