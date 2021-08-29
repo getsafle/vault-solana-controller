@@ -28,6 +28,7 @@
   "dependencies": {
     "@solana/web3.js": "^1.24.0",
     "bip39": "^2.2.0",
+    "buffer-layout": "^1.2.2",
     "crypto-js": "^4.0.0",
     "ed25519-hd-key": "^1.2.0",
     "hdkey": "^2.0.1"
