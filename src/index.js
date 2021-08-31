@@ -146,7 +146,8 @@ class SOLHdKeyring {
 
   async signMessage(message) {
     const accountDetails = helper.setupAccount(this.mnemonic, this.hdPath)
-    return { signedMessage: bs58.encode(nacl.sign.detached(bs58.decode(message), accountDetails.secretKey)) };
+    const msg = bs58.encode(Buffer.from(message))
+    return { signedMessage: bs58.encode(nacl.sign.detached(bs58.decode(msg), accountDetails.secretKey)) };
   }
 
   async getAccounts() {

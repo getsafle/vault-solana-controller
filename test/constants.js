@@ -39,6 +39,10 @@ module.exports = {
     MINT_TOKEN: {
         MINT_AMOUNT: 1000000,
         MINT_DECIMAL: 3
-    }
+    },
+
+    TESTING_MESSAGE_1: "ThisMessageOneIsForTesting",
+    TESTING_MESSAGE_2: "This_message_two_is_for_testing",
+    TESTING_MESSAGE_3: "This message three is for testing"
 
 }

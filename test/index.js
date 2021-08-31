@@ -34,7 +34,10 @@ const {
     MINT_TOKEN: {
         MINT_AMOUNT,
         MINT_DECIMAL
-    }
+    },
+    TESTING_MESSAGE_1,
+    TESTING_MESSAGE_2,
+    TESTING_MESSAGE_3
 } = require('./constants')
 
 const CONTRACT_TXN_PARAM = {
@@ -151,5 +154,16 @@ describe('Initialize wallet ', () => {
         const transactionDetails = await connection.sendRawTransaction(wallet.signedTransaction)
 
         console.log("Mint token transaction hash: ", transactionDetails)
+    })
+
+    it("Sign message", async () => {
+        const signedMessage1 = await solWallet.signMessage(TESTING_MESSAGE_1)
+        console.log("Signed message 1: ", signedMessage1)
+
+        const signedMessage2 = await solWallet.signMessage(TESTING_MESSAGE_2)
+        console.log("Signed message 2: ", signedMessage2)
+
+        const signedMessage3 = await solWallet.signMessage(TESTING_MESSAGE_3)
+        console.log("Signed message 3: ", signedMessage3)
     })
 })
