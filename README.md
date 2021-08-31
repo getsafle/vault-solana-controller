@@ -33,7 +33,7 @@ This function is used to export the provate key for the generated address. <br /
 
 This function is used to sign a transaction off-chain and then send it to the network.<br /> Transactions are of 4 types:
 
-1. SOL transfer:
+1. SOL transfer:<br />
    Trasaction to transfer SOL from one wallet/address to another.<br />The transaction object is of the following type:
 
 ```
@@ -46,7 +46,7 @@ TransactionObj: {
 }
 ```
 
-2. SPL token transfer:
+2. SPL token transfer:<br />
    Transaction to transfer SPL tokens from one wallet/address to another.<br />The transaction object is of the following type:
 
 ```
@@ -61,7 +61,7 @@ TransactionObj: {
 }
 ```
 
-3. Contract transactions
+3. Contract transactions:<br />
    Transaction to call any smart contract function.<br />The transaction object is of the following type:
 
 ```
@@ -75,7 +75,7 @@ TransactionObj: {
 }
 ```
 
-4. Mint new SPL token
+4. Mint new SPL token: <br />
    Transaction to mint new token with initial amount and decimal places.<br />The transaction object is of the following type:
 
 ```
