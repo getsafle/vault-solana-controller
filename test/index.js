@@ -1,4 +1,3 @@
-const solanaWeb3 = require('@solana/web3.js');
 var assert = require('assert');
 const Solana = require('../src/index')
 const {
@@ -84,11 +83,6 @@ const MINT_NEW_TOKEN_PARAM = {
     connectionUrl: DEVNET
 }
 
-const getConnection = (network) => {
-    const connection = new solanaWeb3.Connection(network, "confirmed")
-    return connection;
-}
-
 describe('Initialize wallet ', () => {
     const solWallet = new Solana(HD_WALLET_12_MNEMONIC)
 
@@ -111,8 +105,7 @@ describe('Initialize wallet ', () => {
         const stringWall = wallet.signedTransaction.toString('hex')
         const stringBuff = Buffer.from(stringWall, 'hex')
 
-        const connection = getConnection(SOL_TXN_PARAM.connectionUrl)
-        const transactionDetails = await connection.sendRawTransaction(wallet.signedTransaction)
+        const transactionDetails = await solWallet.sendTransaction(wallet.signedTransaction, SOL_TXN_PARAM.connectionUrl)
 
         console.log("SOL Transfer transaction hash: ", transactionDetails)
     })
@@ -123,11 +116,7 @@ describe('Initialize wallet ', () => {
 
         const wallet = await solWallet.signTransaction(CONTRACT_TXN_PARAM.transaction, CONTRACT_TXN_PARAM.connectionUrl)
 
-        const stringWall = wallet.signedTransaction.toString('hex')
-        const stringBuff = Buffer.from(stringWall, 'hex')
-
-        const connection = getConnection(SOL_TXN_PARAM.connectionUrl)
-        const transactionDetails = await connection.sendRawTransaction(wallet.signedTransaction)
+        const transactionDetails = await solWallet.sendTransaction(wallet.signedTransaction, CONTRACT_TXN_PARAM.connectionUrl)
 
         console.log("Contract transaction hash: ", transactionDetails)
     })
@@ -135,11 +124,7 @@ describe('Initialize wallet ', () => {
     it("Sign token transfer transaction", async () => {
         const wallet = await solWallet.signTransaction(TOKEN_TXN_PARAM.transaction, TOKEN_TXN_PARAM.connectionUrl)
 
-        const stringWall = wallet.signedTransaction.toString('hex')
-        const stringBuff = Buffer.from(stringWall, 'hex')
-
-        const connection = getConnection(SOL_TXN_PARAM.connectionUrl)
-        const transactionDetails = await connection.sendRawTransaction(wallet.signedTransaction)
+        const transactionDetails = await solWallet.sendTransaction(wallet.signedTransaction, TOKEN_TXN_PARAM.connectionUrl)
 
         console.log("Token Transfer transaction hash: ", transactionDetails)
     })
@@ -147,11 +132,7 @@ describe('Initialize wallet ', () => {
     it("Sign token minting transaction", async () => {
         const wallet = await solWallet.signTransaction(MINT_NEW_TOKEN_PARAM.transaction, MINT_NEW_TOKEN_PARAM.connectionUrl)
 
-        const stringWall = wallet.signedTransaction.toString('hex')
-        const stringBuff = Buffer.from(stringWall, 'hex')
-
-        const connection = getConnection(SOL_TXN_PARAM.connectionUrl)
-        const transactionDetails = await connection.sendRawTransaction(wallet.signedTransaction)
+        const transactionDetails = await solWallet.sendTransaction(wallet.signedTransaction, MINT_NEW_TOKEN_PARAM.connectionUrl)
 
         console.log("Mint token transaction hash: ", transactionDetails)
     })

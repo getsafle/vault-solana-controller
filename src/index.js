@@ -128,11 +128,11 @@ class SOLHdKeyring {
 
       const { txn, mintSigners } = await helper.mintInitialToken({
         connection,
-        owner: signer, 
-        mint, 
-        amount, 
+        owner: signer,
+        mint,
+        amount,
         decimals,
-        initialAccount, 
+        initialAccount,
       })
 
       const rawSignedTxn = await helper.signTransaction(txn, signer, connection, mintSigners)
@@ -152,6 +152,19 @@ class SOLHdKeyring {
 
   async getAccounts() {
     return { address: this.address }
+  }
+
+  /**
+   *  
+   * @param {Buffer || UInt8Array} rawTransaction 
+   * @param {string} connectionUrl
+   * @returns 
+   */
+  async sendTransaction(rawTransaction, connectionUrl) {
+    const connection = new solanaWeb3.Connection(connectionUrl, "confirmed")
+    const transactionDetails = await connection.sendRawTransaction(rawTransaction)
+
+    return { transactionDetails: transactionDetails }
   }
 
 }
