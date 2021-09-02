@@ -21,13 +21,13 @@ The wallet have the following functions:
 
 This function is used to generate the Solana wallet and set the 0th address as the default address. <br />
 parameters: - <br />
-returns: `{address : wallet_address}`
+returns: `{address: string} // wallet address`
 
 #### exportPrivateKey()
 
 This function is used to export the provate key for the generated address. <br />
 **parameters:** - <br />
-**returns:** `{privateKey : private_key}`
+**returns:** `{privateKey: string} // address private key`
 
 #### signTransaction(transaction: _TransactionObj_ , connectionUrl: _string_ )
 
@@ -98,7 +98,7 @@ name: connectionUrl, // SOLANA network URL
 type: string
 ```
 
-**returns:** `{signedTransaction : raw_signed_transaction}`
+**returns:** `{signedTransaction: Buffer} signed raw transaction`
 
 #### signMessage(message: _string_ )
 
@@ -110,10 +110,25 @@ name: message
 type: string
 ```
 
-**returns:** `{signedMessage : signed_message}`
+**returns:** `{signedMessage: string} // signed message hex string`
 
 #### getAccounts()
 
 This function is used to get the wallet address. <br />
 **parameters:** - <br />
-**returns:** `{address : wallet_address}`
+**returns:** `{address: string} // wallet address`
+
+#### sendTransaction(rawTransaction: _Buffer_ | _UInt8Array_ , connectionUrl: _string_)
+
+This function is used send the signed transaction onto the chain. <br />
+**parameters:**
+
+```
+name: rawTransaction, // signed raw transaction (got from signedTransaction())
+type: Buffer | UInt8Array
+
+name: connectionUrl, // SOLANA network URL
+type: string
+```
+
+**returns:** `{transactionDetails : string} // transaction hash`
