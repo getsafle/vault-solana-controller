@@ -132,3 +132,17 @@ type: string
 ```
 
 **returns:** `{transactionDetails : string} // transaction hash`
+
+#### getFee(connectionUrl: _string_)
+
+This function is returns the fees in lamports which will be used for each signature. <br />
+That means if there are 5 signatures of a transaction then the total fees will be `5 * transactionFees` . <br />
+
+**parameters:**
+
+```
+name: connectionUrl, // SOLANA network URL
+type: string
+```
+
+**returns:** `{transactionFees: integer} // transaction fees`

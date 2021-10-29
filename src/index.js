@@ -167,6 +167,12 @@ class SOLHdKeyring {
     return { transactionDetails: transactionDetails }
   }
 
+  async getFee(connectionUrl) {
+    const connection = new solanaWeb3.Connection(connectionUrl, "confirmed")
+    const block = await connection.getRecentBlockhash()
+    return { transactionFees: block.feeCalculator.lamportsPerSignature }
+  }
+
 }
 
 module.exports = SOLHdKeyring

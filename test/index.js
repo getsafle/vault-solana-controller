@@ -96,6 +96,16 @@ describe('Initialize wallet ', () => {
         assert(solWallet.address !== null)
     })
 
+    it("Should getAccounts ", async () => {
+        const account = await solWallet.getAccounts()
+        console.log("account ", account)
+    })
+
+    it("Should getFees ", async () => {
+        const fees = await solWallet.getFee(DEVNET)
+        console.log("fees ", fees)
+    })
+
     it("Should sign SOL transfer transaction ", async () => {
         assert.equal(solWallet.mnemonic, HD_WALLET_12_MNEMONIC, "Incorrect hd wallet")
         assert(solWallet.address !== null)
