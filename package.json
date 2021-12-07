@@ -1,0 +1,38 @@
+{
+  "name": "solana-wallet",
+  "version": "0.0.1",
+  "description": "solana wallet",
+  "main": "build/index.js",
+  "scripts": {
+    "i": "rm -rf node_modules && npm i",
+    "tsc": "npm run clean && tsc",
+    "clean": "rm -rf build",
+    "test": "export NODE_ENV=test && jest",
+    "pub": "npm run tsc && npm publish"
+  },
+  "jest": {
+    "require": [
+      "ts-node/register",
+      "tsconfig-paths/register"
+    ]
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.31.0",
+    "axios": "^0.24.0",
+    "bip39": "^3.0.4",
+    "ed25519-hd-key": "^1.2.0",
+    "js-sha3": "^0.8.0",
+    "secp256k1": "^4.0.2"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/preset-env": "^7.16.4",
+    "@babel/preset-typescript": "^7.16.0",
+    "jest": "^27.4.3",
+    "typescript": "^4.5.2"
+  },
+  "files": [
+    "build/**/*"
+  ]
+}
