@@ -1,7 +1,7 @@
 import "regenerator-runtime/runtime";
-import { Connection, PublicKey, Keypair, Secp256k1Program } from "@solana/web3.js";
+import { Connection, PublicKey, Keypair } from "@solana/web3.js";
 import * as bip39 from "bip39";
-const secp256k1 = require('secp256k1');
+import * as nacl from "tweetnacl";
 
 import {
     fromMnemonicToAccounts,
@@ -12,9 +12,7 @@ import {
     fetchNetworkFees,
 } from "../";
 
-import {
-    privateKey, from, to, prod, dev, amount,
-} from "./mock-data";
+import { dev, } from "./mock-data";
 const { url } = dev;
 
 let connection;
@@ -24,7 +22,7 @@ let connection;
     check: generate multiple accounts using a single mnemonic
     check: Export keys for all the wallets
     check: Sign transactions
-    Sign messages
+    check: Sign messages
     check: Broadcast transactions
     check: Get network fees
 
@@ -47,53 +45,55 @@ test('generate multiple accounts using a single mnemonic, and export them', asyn
         const path = `m/44'/501'/${i}'/0'`;
         const account = fromMnemonicToAccounts(mnemonic, i);
         console.log(`${path} => ${account.publicKey.toBase58()}`);
+
+        // export the publicKey and the privateKey
         const { publicKey, privateKey } = exportKeys(account);
         console.log("publicKey: " + publicKey);
         console.log("privateKey: " + privateKey);
     }
 });
 
-test('sign transaction', async () => {
+test('sign transaction and broadcast it', async () => {
     const recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+    const { privateKey, from, to, amount, } = require("./mock-data");
+
     try {
         const serializeMsg = signTransaction({
             from, amount, to, recentBlockhash, privateKey
         });
         console.log("serializeMsg: " + serializeMsg);
+
         // broadcast rawT
         const txhash = await sendRawTx(url, serializeMsg);
         console.log("txhash: " + txhash);
-        // expect(response.status===true).toBeTruthy();
+
     } catch (error) {
         throw new Error(`Sign transaction error：` + error);
     }
-    expect(true).toBe(true);
 });
 
 test('sign message', async () => {
-    const recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+    const { privateKey, } = require("./mock-data");
+
     try {
-        // Create a Ethereum Address from secp256k1
-        let secp256k1PrivateKey;
-        do {
-            secp256k1PrivateKey = Keypair.generate().secretKey.slice(0, 32);
-        } while (!secp256k1.privateKeyVerify(secp256k1PrivateKey));
-        let secp256k1PublicKey = secp256k1.publicKeyCreate(secp256k1PrivateKey, false).slice(1);
-        let ethAddress = Secp256k1Program.publicKeyToEthAddress(secp256k1PublicKey);
-
-        const serializeMsg = signMessage({
-            message: "string address", recentBlockhash, ethAddress, secp256k1PrivateKey, from, privateKey
+        const dateNeedToSign = "string address";
+        const signedMessage = signMessage({
+            dateNeedToSign, privateKey
         });
-        console.log("serializeMsg: " + serializeMsg);
+        console.log("signedMessage: " + signedMessage);
 
-        // broadcast rawT
-        const txhash = await sendRawTx(url, serializeMsg);
-        console.log("txhash: " + txhash);
-        // expect(response.status===true).toBeTruthy();
+        // you can verify signatures
+        const feePayer = Keypair.fromSecretKey(new Uint8Array(Buffer.from(privateKey, "hex")));
+        let verifyMessage = nacl.sign.detached.verify(
+            Buffer.from(dateNeedToSign),
+            Buffer.from(signedMessage, "hex"),
+            feePayer.publicKey.toBytes() // you should use the raw pubkey (32 bytes) to verify
+        );
+        console.log(`verify message validify: ${verifyMessage}`);
+
     } catch (error) {
-        throw new Error(`Sign transaction error：` + error);
+        throw new Error(`Sign Message error：` + error);
     }
-    expect(true).toBe(true);
 });
 
 test('fetch network fees', async () => {
@@ -103,7 +103,6 @@ test('fetch network fees', async () => {
     } catch (error) {
         throw new Error(error.response.data);
     }
-    expect(true).toBe(true);
 });
 
 async function requestTestSol(address) {

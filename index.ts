@@ -1,10 +1,9 @@
 import "regenerator-runtime/runtime";
-import { PublicKey, Keypair, Transaction, SystemProgram, Connection, Secp256k1Program } from "@solana/web3.js";
+import { PublicKey, Keypair, Transaction, SystemProgram, Connection } from "@solana/web3.js";
 import { derivePath } from "ed25519-hd-key";
 import * as bip39 from "bip39";
 import axios from "axios";
-const { keccak_256 } = require('js-sha3');
-const secp256k1 = require('secp256k1');
+import * as nacl from "tweetnacl";
 
 /**
  * generate multiple accounts using a single mnemonic
@@ -44,6 +43,7 @@ export function signTransaction(params) {
     const {
         from, to, recentBlockhash, amount, privateKey
     } = params;
+
     const feePayer = Keypair.fromSecretKey(new Uint8Array(Buffer.from(privateKey, "hex")));
 
     // construct a txn obj
@@ -69,34 +69,22 @@ export function signTransaction(params) {
     return serializeMsg;
 }
 
+/**
+ * Sign Messages
+ * solana uses ed25519 as its curve, per the official documentation: https://docs.solana.com/integrations/exchange#valid-ed25519-pubkey-check
+ * therefore, use any lib you like, the main idea is to use ed25519 to sign it.
+ * the return signature should be 64 bytes.
+ * @param dateNeedToSign required 
+ * @param privateKey required
+ * @returns a signed hex string which can be verified by the privateKey
+ */
 export function signMessage(params) {
-    const { message, secp256k1PrivateKey, from, ethAddress, recentBlockhash, privateKey } = params;
+    const { dateNeedToSign, privateKey } = params;
 
-    // Sign Message with Ethereum Key
-    let plaintext = Buffer.from(message);
-    let plaintextHash = Buffer.from(keccak_256.update(plaintext).digest());
-    let { signature, recid: recoveryId } = secp256k1.ecdsaSign(
-        plaintextHash,
-        secp256k1PrivateKey
-    );
-
-    // Create transaction to verify the signature
-    let tx = new Transaction().add(
-        Secp256k1Program.createInstructionWithEthAddress({
-            ethAddress: ethAddress.toString('hex'),
-            // @ts-ignore
-            plaintext,
-            signature,
-            recoveryId,
-        }),
-    );
-    tx.feePayer = new PublicKey(from);
-    tx.recentBlockhash = recentBlockhash;
-    // sign offline
     const feePayer = Keypair.fromSecretKey(new Uint8Array(Buffer.from(privateKey, "hex")));
-    tx.sign(feePayer);
-    const serializeMsg = tx.serialize().toString("base64");
-    return serializeMsg;
+    let signedMessage = nacl.sign.detached(Buffer.from(dateNeedToSign), feePayer.secretKey);
+
+    return Buffer.from(signedMessage).toString("hex");
 };
 
 
