@@ -110,7 +110,6 @@ async function requestTestSol(address) {
     const txhash = await connection.requestAirdrop(publicKey, 1e9);
     console.log(txhash)
 
-    // 等待链上完成交易
     for (; ;) {
         await new Promise((resolve) => setTimeout(resolve, 500));
         let balance = await connection.getBalance(publicKey);
