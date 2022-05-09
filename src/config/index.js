@@ -19,8 +19,18 @@ module.exports = {
         OWNER_VALIDATION_PROGRAM_ID: new PublicKey('4MNPdKu9wFMvEeZBMt3Eipfs5ovVWTJb31pEXDJAAxX5')
     },
     solana_connection: {
-        MAINNET: 'https://api.mainnet-beta.solana.com',
-        TESTNET: 'https://api.testnet.solana.com',
-        DEVNET: 'https://api.devnet.solana.com'
+        MAINNET: {
+            NETWORK: "MAINNET",
+            URL: 'https://api.mainnet-beta.solana.com',
+        },
+
+        TESTNET: {
+            NETWORK: "TESTNET",
+            URL: 'https://api.testnet.solana.com',
+        },
+        DEVNET: {
+            NETWORK: "DEVNET",
+            URL: 'https://api.devnet.solana.com'
+        }
     }
 }

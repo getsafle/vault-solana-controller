@@ -31,7 +31,8 @@
     "buffer-layout": "^1.2.2",
     "crypto-js": "^4.0.0",
     "ed25519-hd-key": "^1.2.0",
-    "hdkey": "^2.0.1"
+    "hdkey": "^2.0.1",
+    "obs-store": "^4.0.3"
   },
   "devDependencies": {
     "@metamask/eslint-config": "^4.0.0",

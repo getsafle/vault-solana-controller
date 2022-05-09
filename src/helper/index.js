@@ -5,6 +5,8 @@ const signTransaction = require('./signTransaction')
 const manageTokenAccounts = require('./tokenAccount')
 const transferToken = require('./tokenTransfer')
 const mintInitialToken = require('./tokenMint')
+const getNetwork = require('./getNetwork')
+const importAccount = require('./importAccount')
 
 module.exports = {
     instructions,
@@ -13,5 +15,7 @@ module.exports = {
     signTransaction,
     manageTokenAccounts,
     transferToken,
-    mintInitialToken
+    mintInitialToken,
+    getNetwork,
+    importAccount
 }

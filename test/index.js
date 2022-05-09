@@ -1,5 +1,5 @@
 var assert = require('assert');
-const Solana = require('../src/index')
+const { KeyringController: Solana, getBalance } = require('../src/index')
 const {
     HD_WALLET_12_MNEMONIC,
     SOLANA_NETWORK: {
@@ -83,78 +83,109 @@ const MINT_NEW_TOKEN_PARAM = {
     connectionUrl: DEVNET
 }
 
-describe('Initialize wallet ', () => {
-    const solWallet = new Solana(HD_WALLET_12_MNEMONIC)
+const opts = {
+    mnemonic: HD_WALLET_12_MNEMONIC,
+    network: DEVNET.NETWORK
+}
 
-    it("Should have correct mnemonic", () => {
-        assert.equal(solWallet.mnemonic, HD_WALLET_12_MNEMONIC, "Incorrect hd wallet")
+describe('Controller test', () => {
+    const solWallet = new Solana(opts)
+
+    it("Should generate new address ", async () => {
+        const wallet = await solWallet.addAccount()
+        console.log("wallet, ", wallet)
+        const wallet2 = await solWallet.addAccount()
+        console.log("wallet2, ", wallet2)
     })
 
-    it("Should generateWallet ", async () => {
-        assert(solWallet.address === null)
-        const wallet = await solWallet.generateWallet()
-        assert(solWallet.address !== null)
+    it("Should get accounts", async () => {
+        const acc = await solWallet.getAccounts()
+        console.log("acc ", acc)
+        assert(acc.length === 2, "Should have 2 addresses")
     })
 
-    it("Should getAccounts ", async () => {
-        const account = await solWallet.getAccounts()
-        console.log("account ", account)
+    it("Should get privateKey ", async () => {
+        const acc = await solWallet.getAccounts()
+        const privateKey = await solWallet.exportPrivateKey(acc[0])
+        console.log("privateKey, ", privateKey)
     })
 
-    it("Should getFees ", async () => {
-        const fees = await solWallet.getFee(DEVNET)
-        console.log("fees ", fees)
+    it("Should import new account ", async () => {
+        const acc = await solWallet.getAccounts()
+        const { privateKey } = await solWallet.exportPrivateKey(acc[0])
+        const account = await solWallet.importWallet(privateKey)
+        console.log("account, ", account)
+        assert(account === acc[0], "Should be the zeroth account")
+    })
+
+    it("Should get balance of the address ", async () => {
+        const acc = await solWallet.getAccounts()
+        console.log("acc ", acc)
+        const balance = await getBalance(acc[0], opts.network)
+        console.log("balance ", balance)
     })
 
     it("Should sign SOL transfer transaction ", async () => {
-        assert.equal(solWallet.mnemonic, HD_WALLET_12_MNEMONIC, "Incorrect hd wallet")
         assert(solWallet.address !== null)
+        const acc = await solWallet.getAccounts()
+        SOL_TXN_PARAM.transaction['from'] = acc[0]
 
-        const wallet = await solWallet.signTransaction(SOL_TXN_PARAM.transaction, SOL_TXN_PARAM.connectionUrl)
+        const wallet = await solWallet.signTransaction(SOL_TXN_PARAM.transaction)
 
         const stringWall = wallet.signedTransaction.toString('hex')
         const stringBuff = Buffer.from(stringWall, 'hex')
 
-        const transactionDetails = await solWallet.sendTransaction(wallet.signedTransaction, SOL_TXN_PARAM.connectionUrl)
+        const transactionDetails = await solWallet.sendTransaction(wallet.signedTransaction)
 
         console.log("SOL Transfer transaction hash: ", transactionDetails)
     })
 
     it("Should sign contract transaction ", async () => {
-        assert.equal(solWallet.mnemonic, HD_WALLET_12_MNEMONIC, "Incorrect hd wallet")
         assert(solWallet.address !== null)
+        const acc = await solWallet.getAccounts()
+        CONTRACT_TXN_PARAM.transaction['from'] = acc[0]
 
-        const wallet = await solWallet.signTransaction(CONTRACT_TXN_PARAM.transaction, CONTRACT_TXN_PARAM.connectionUrl)
+        const wallet = await solWallet.signTransaction(CONTRACT_TXN_PARAM.transaction)
 
-        const transactionDetails = await solWallet.sendTransaction(wallet.signedTransaction, CONTRACT_TXN_PARAM.connectionUrl)
+        const transactionDetails = await solWallet.sendTransaction(wallet.signedTransaction)
 
         console.log("Contract transaction hash: ", transactionDetails)
     })
 
     it("Sign token transfer transaction", async () => {
-        const wallet = await solWallet.signTransaction(TOKEN_TXN_PARAM.transaction, TOKEN_TXN_PARAM.connectionUrl)
+        const acc = await solWallet.getAccounts()
+        TOKEN_TXN_PARAM.transaction['from'] = acc[0]
 
-        const transactionDetails = await solWallet.sendTransaction(wallet.signedTransaction, TOKEN_TXN_PARAM.connectionUrl)
+        const wallet = await solWallet.signTransaction(TOKEN_TXN_PARAM.transaction)
+
+        const transactionDetails = await solWallet.sendTransaction(wallet.signedTransaction)
 
         console.log("Token Transfer transaction hash: ", transactionDetails)
     })
 
     it("Sign token minting transaction", async () => {
-        const wallet = await solWallet.signTransaction(MINT_NEW_TOKEN_PARAM.transaction, MINT_NEW_TOKEN_PARAM.connectionUrl)
+        const acc = await solWallet.getAccounts()
+        MINT_NEW_TOKEN_PARAM.transaction['from'] = acc[0]
 
-        const transactionDetails = await solWallet.sendTransaction(wallet.signedTransaction, MINT_NEW_TOKEN_PARAM.connectionUrl)
+        const wallet = await solWallet.signTransaction(MINT_NEW_TOKEN_PARAM.transaction)
+
+        const transactionDetails = await solWallet.sendTransaction(wallet.signedTransaction)
 
         console.log("Mint token transaction hash: ", transactionDetails)
     })
 
     it("Sign message", async () => {
-        const signedMessage1 = await solWallet.signMessage(TESTING_MESSAGE_1)
+        const acc = await solWallet.getAccounts()
+
+        const signedMessage1 = await solWallet.signMessage(TESTING_MESSAGE_1, acc[0])
         console.log("Signed message 1: ", signedMessage1)
 
-        const signedMessage2 = await solWallet.signMessage(TESTING_MESSAGE_2)
+        const signedMessage2 = await solWallet.signMessage(TESTING_MESSAGE_2, acc[0])
         console.log("Signed message 2: ", signedMessage2)
 
-        const signedMessage3 = await solWallet.signMessage(TESTING_MESSAGE_3)
+        const signedMessage3 = await solWallet.signMessage(TESTING_MESSAGE_3, acc[0])
         console.log("Signed message 3: ", signedMessage3)
     })
+
+
 })

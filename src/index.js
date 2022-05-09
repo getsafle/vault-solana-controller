@@ -1,178 +1,265 @@
+const ObservableStore = require('obs-store')
 const solanaWeb3 = require('@solana/web3.js');
 const nacl = require('tweetnacl');
 const bs58 = require('bs58');
 
 const { solana: { HD_PATH }, solana_transaction: { NATIVE_TRANSFER, TOKEN_TRANSFER, CONTRACT_TRANSACTION, MINT_NEW_TOKEN }, solana_connection: { MAINNET } } = require('./config')
 
+/**
+ * HD_PATH TO CHECK
+ * m/44'/501'/${idx}'/0'
+ * m/44'/501'/0'/${idx}'
+ */
+
+
 const helper = require('./helper')
 
-class SOLHdKeyring {
-  constructor(mnemonic) {
-    this.mnemonic = mnemonic
-    this.hdPath = HD_PATH
-    this.wallet = null
-    this.address = null
+class KeyringController {
+
+  /**
+   * 
+   * @param {mnemonic, network} opts
+   * network = TESTNET | MAINNET 
+   */
+  constructor(opts) {
+    this.store = new ObservableStore({ mnemonic: opts.mnemonic, hdPath: HD_PATH, network: helper.getNetwork(opts.network), networkType: opts.network ? opts.network : MAINNET.NETWORK, wallet: null, address: [] })
+    this.importedWallets = []
   }
 
-  async generateWallet() {
-    const accountDetails = helper.setupAccount(this.mnemonic, this.hdPath)
-    this.address = accountDetails.publicKey.toString()
-    return { address: this.address }
+  async addAccount() {
+    const { mnemonic, address } = this.store.getState();
+    const accountDetails = helper.setupAccount(mnemonic, `m/44'/501'/${address.length}'/0'`)
+    const _address = accountDetails.publicKey.toString()
+    this.persistAllAddress(_address)
+    return { address: _address }
   }
 
-  async exportPrivateKey() {
-    const accountDetails = helper.setupAccount(this.mnemonic, this.hdPath)
-    return { privateKey: accountDetails.secretKey.toString('hex') };
+  async getAccounts() {
+    const { address } = this.store.getState();
+    return address
+  }
+
+  async exportPrivateKey(_address) {
+    const { mnemonic, address } = this.store.getState()
+
+    const idx = address.indexOf(_address)
+    if (idx < 0)
+      throw "Invalid address, the address is not available in the wallet"
+
+    const accountDetails = helper.setupAccount(mnemonic, `m/44'/501'/${idx}'/0'`)
+
+    // Works on sollet
+    // console.log("`[${Array.from(wallet.provider.account.secretKey)}]` ", `[${Array.from(accountDetails.secretKey)}]`)
+
+    // secret key buffer
+    // console.log("accountDetails.secretKey ", accountDetails.secretKey)
+
+    // secret key string
+    // return { privateKey: accountDetails.secretKey.toString('hex') };
+
+    return { privateKey: `[${Array.from(accountDetails.secretKey)}]` };
+
+  }
+
+  async importWallet(_privateKey) {
+    try {
+      const address = helper.importAccount(_privateKey)
+      this.importedWallets.push(address.publicKey.toString());
+      return address.publicKey.toString()
+    } catch (e) {
+      return Promise.reject(e)
+    }
   }
 
   /**
-   * NATIVE_TXN : { data : {to, amount}, txnType: NATIVE_TRANSFER }
+   * NATIVE_TXN : { data : {to, amount}, txnType: NATIVE_TRANSFER, from }
    * TOKEN_TXN : { data : {
             to, // destination address
             amount // amount to send
             memo // any memo send by user
             token // token address
-        }, txnType: TOKEN_TRANSFER }
-   * CONTRACT_TXN : { data : {programAccountKey, programId, bufferData}, txnType: CONTRACT_TRANSACTION }
+        }, txnType: TOKEN_TRANSFER, from }
+   * CONTRACT_TXN : { data : {programAccountKey, programId, bufferData}, txnType: CONTRACT_TRANSACTION, from }
    * MINT_NEW_TOKEN: {data: {
    *        amount: 1000, // amount
    *        decimals: 2, // decimal places
-   * }, txnType: MINT_NEW_TOKEN}
+   * }, txnType: MINT_NEW_TOKEN, from}
    *     
    */
   /**
    *  
    * @param {object: NATIVE_TXN | TOKEN_TXN | CONTRACT_TXN | MINT_NEW_TOKEN} transaction 
-   * @param {string} connectionUrl
    * @returns 
    */
-  async signTransaction(transaction, connectionUrl) {
-    const signer = helper.setupAccount(this.mnemonic, this.hdPath)
-    const connection = new solanaWeb3.Connection(connectionUrl, "confirmed")
+  async signTransaction(transaction) {
+    const { mnemonic, address, network, networkType } = this.store.getState()
 
-    const isMainnet = connectionUrl === MAINNET ? true : false
+    const { from } = transaction
+    const idx = address.indexOf(from)
+    if (idx < 0)
+      throw "Invalid address, the address is not available in the wallet"
 
-    const { txnType } = transaction
-    if (txnType === NATIVE_TRANSFER) {
-      const { to, amount } = transaction.data
-      const receiverPublicKey = new solanaWeb3.PublicKey(to);
-      const txn = new solanaWeb3.Transaction().add(
-        solanaWeb3.SystemProgram.transfer({
-          fromPubkey: signer.publicKey,
-          toPubkey: receiverPublicKey,
-          lamports: amount,
-        }),
-      )
+    try {
+      const signer = helper.setupAccount(mnemonic, `m/44'/501'/${idx}'/0'`)
+      const connection = new solanaWeb3.Connection(network, "confirmed")
 
-      const rawSignedTxn = await helper.signTransaction(txn, signer, connection, [])
+      const isMainnet = networkType === MAINNET.NETWORK ? true : false
 
-      return { signedTransaction: rawSignedTxn };
-    }
-    else if (txnType === TOKEN_TRANSFER) {
+      const { txnType } = transaction
+      if (txnType === NATIVE_TRANSFER) {
+        const { to, amount } = transaction.data
+        const receiverPublicKey = new solanaWeb3.PublicKey(to);
+        const txn = new solanaWeb3.Transaction().add(
+          solanaWeb3.SystemProgram.transfer({
+            fromPubkey: signer.publicKey,
+            toPubkey: receiverPublicKey,
+            lamports: amount,
+          }),
+        )
 
-      const { to, amount, memo, token, overrideDestinationCheck } = transaction.data
+        const rawSignedTxn = await helper.signTransaction(txn, signer, connection, [])
 
-      const receiverPublicKey = new solanaWeb3.PublicKey(to)
-      const tokenPublicKey = new solanaWeb3.PublicKey(token)
-      const tokenInfo = await connection.getAccountInfo(tokenPublicKey)
+        return { signedTransaction: rawSignedTxn };
+      }
+      else if (txnType === TOKEN_TRANSFER) {
 
-      const { decimals } = helper.layout.parseMintData(tokenInfo.data)
+        const { to, amount, memo, token, overrideDestinationCheck } = transaction.data
 
-      const INFO = await helper.manageTokenAccounts.getTokenAccountInfo(connection, signer.publicKey)
-      const checkCorrectToken = helper.manageTokenAccounts.checkToken(INFO, token)
-      if (!checkCorrectToken.availableToken)
-        return
+        const receiverPublicKey = new solanaWeb3.PublicKey(to)
+        const tokenPublicKey = new solanaWeb3.PublicKey(token)
+        const tokenInfo = await connection.getAccountInfo(tokenPublicKey)
 
-      const sourcePublicKey = checkCorrectToken.tokenAccount
+        const { decimals } = helper.layout.parseMintData(tokenInfo.data)
 
-      const txn = await helper.transferToken({
-        connection,
-        owner: signer,
-        sourcePublicKey,
-        destinationPublicKey: receiverPublicKey,
-        amount,
-        memo,
-        mint: tokenPublicKey,
-        decimals,
-        overrideDestinationCheck
-      }, isMainnet)
+        const INFO = await helper.manageTokenAccounts.getTokenAccountInfo(connection, signer.publicKey)
+        const checkCorrectToken = helper.manageTokenAccounts.checkToken(INFO, token)
+        if (!checkCorrectToken.availableToken)
+          return
 
-      const rawSignedTxn = await helper.signTransaction(txn, signer, connection, [])
+        const sourcePublicKey = checkCorrectToken.tokenAccount
 
-      return { signedTransaction: rawSignedTxn };
-    }
+        const txn = await helper.transferToken({
+          connection,
+          owner: signer,
+          sourcePublicKey,
+          destinationPublicKey: receiverPublicKey,
+          amount,
+          memo,
+          mint: tokenPublicKey,
+          decimals,
+          overrideDestinationCheck
+        }, isMainnet)
 
-    else if (txnType === CONTRACT_TRANSACTION) {
+        const rawSignedTxn = await helper.signTransaction(txn, signer, connection, [])
 
-      const { programAccountKey, programId, bufferData } = transaction.data
+        return { signedTransaction: rawSignedTxn };
+      }
 
-      const accountKey = new solanaWeb3.PublicKey(programAccountKey);
-      const programKey = new solanaWeb3.PublicKey(programId);
+      else if (txnType === CONTRACT_TRANSACTION) {
 
-      const instruction = new solanaWeb3.TransactionInstruction({
-        keys: [{ pubkey: accountKey, isSigner: false, isWritable: true }],
-        programId: programKey,
-        data: bufferData,
-      });
+        const { programAccountKey, programId, bufferData } = transaction.data
 
-      const txn = new solanaWeb3.Transaction().add(instruction)
+        const accountKey = new solanaWeb3.PublicKey(programAccountKey);
+        const programKey = new solanaWeb3.PublicKey(programId);
 
-      const rawSignedTxn = await helper.signTransaction(txn, signer, connection, [])
+        const instruction = new solanaWeb3.TransactionInstruction({
+          keys: [{ pubkey: accountKey, isSigner: false, isWritable: true }],
+          programId: programKey,
+          data: bufferData,
+        });
 
-      return { signedTransaction: rawSignedTxn };
-    }
-    else if (txnType === MINT_NEW_TOKEN) {
-      const { amount, decimals } = transaction.data
-      const mint = new solanaWeb3.Account()
-      const initialAccount = new solanaWeb3.Account()
+        const txn = new solanaWeb3.Transaction().add(instruction)
 
-      const { txn, mintSigners } = await helper.mintInitialToken({
-        connection,
-        owner: signer,
-        mint,
-        amount,
-        decimals,
-        initialAccount,
-      })
+        const rawSignedTxn = await helper.signTransaction(txn, signer, connection, [])
 
-      const rawSignedTxn = await helper.signTransaction(txn, signer, connection, mintSigners)
+        return { signedTransaction: rawSignedTxn };
+      }
+      else if (txnType === MINT_NEW_TOKEN) {
+        const { amount, decimals } = transaction.data
+        const mint = new solanaWeb3.Account()
+        const initialAccount = new solanaWeb3.Account()
 
-      return { signedTransaction: rawSignedTxn };
-    }
-    else {
-      return null
+        const { txn, mintSigners } = await helper.mintInitialToken({
+          connection,
+          owner: signer,
+          mint,
+          amount,
+          decimals,
+          initialAccount,
+        })
+
+        const rawSignedTxn = await helper.signTransaction(txn, signer, connection, mintSigners)
+
+        return { signedTransaction: rawSignedTxn };
+      }
+      else {
+        return null
+      }
+    } catch (err) {
+      throw err
     }
   }
 
-  async signMessage(message) {
-    const accountDetails = helper.setupAccount(this.mnemonic, this.hdPath)
-    const msg = bs58.encode(Buffer.from(message))
-    return { signedMessage: bs58.encode(nacl.sign.detached(bs58.decode(msg), accountDetails.secretKey)) };
-  }
-
-  async getAccounts() {
-    return { address: this.address }
+  async signMessage(message, _address) {
+    const { mnemonic, network, address } = this.store.getState()
+    const idx = address.indexOf(_address);
+    if (idx < 0)
+      throw "Invalid address, the address is not available in the wallet"
+    try {
+      const accountDetails = helper.setupAccount(mnemonic, `m/44'/501'/${idx}'/0'`)
+      const msg = bs58.encode(Buffer.from(message))
+      return { signedMessage: bs58.encode(nacl.sign.detached(bs58.decode(msg), accountDetails.secretKey)) };
+    } catch (err) {
+      throw err
+    }
   }
 
   /**
    *  
    * @param {Buffer || UInt8Array} rawTransaction 
-   * @param {string} connectionUrl
    * @returns 
    */
-  async sendTransaction(rawTransaction, connectionUrl) {
-    const connection = new solanaWeb3.Connection(connectionUrl, "confirmed")
+  async sendTransaction(rawTransaction) {
+
+    const { network } = this.store.getState()
+
+    const connection = new solanaWeb3.Connection(network, "confirmed")
     const transactionDetails = await connection.sendRawTransaction(rawTransaction)
 
     return { transactionDetails: transactionDetails }
   }
 
-  async getFee(connectionUrl) {
-    const connection = new solanaWeb3.Connection(connectionUrl, "confirmed")
+  async getFee() {
+    const { network, networkType } = this.store.getState()
+
+    const connection = new solanaWeb3.Connection(network, "confirmed")
     const block = await connection.getRecentBlockhash()
     return { transactionFees: block.feeCalculator.lamportsPerSignature }
   }
 
+  persistAllAddress(_address) {
+    const { address } = this.store.getState()
+    let newAdd = address
+    newAdd.push(_address)
+    this.store.updateState({ address: newAdd })
+    return true
+  }
+  updatePersistentStore(obj) {
+    this.store.updateState(obj)
+    return true
+  }
+
 }
 
-module.exports = SOLHdKeyring
+const getBalance = async (address, networkType) => {
+  try {
+    const network = helper.getNetwork(networkType)
+    const connection = new solanaWeb3.Connection(network, "confirmed")
+    const accInfo = await connection.getAccountInfo(new solanaWeb3.PublicKey(address))
+    return { balance: accInfo.lamports }
+  } catch (err) {
+    throw err
+  }
+}
+
+module.exports = { KeyringController, getBalance }

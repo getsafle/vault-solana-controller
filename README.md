@@ -1,37 +1,50 @@
-# Solana-wallet
+# vault-solana-controller
 
-This repository contains `SOLHdKeyring` class to create **Solana wallet** from **Safle Vault**.
+## Install
 
-## Usecase
+`npm install --save @getsafle/vault-solana-controller`
 
-We will be using `SolHdKeyring` class to initialize the wallet and then utilize the provided functions to perform the required tasks. <br />
-The class initialization is done in the following way.
+## Initialize the Solana Controller class
 
 ```
-const solWallet = new SolHdKeyring(`mnemonic`)
+const { KeyringController, getBalance } = require('@getsafle/vault-solana-controller');
+
+const solanaController = new KeyringController({
+    // 12 words mnemonic to create wallet
+    mnemonic: string,
+    // network - type of network [TESTNET|MAINNET|DEVNET]
+    // default is MAINNET even if no network is passed
+    network: string (TESTNET | MAINNET | DEVNET)
+});
 ```
 
-`mnemonic` is the BIP-39 key phrase to generate the wallet.
+## Methods
 
-Once we initialize the class, we can utilize the provided functions.
+### Generate Keyring with 1 account or add new account
 
-The wallet have the following functions:
+```
+const keyringState = await solanaController.addAccount();
+```
 
-#### generateWallet()
+### Export the private key of an address present in the keyring
 
-This function is used to generate the Solana wallet and set the 0th address as the default address. <br />
-parameters: - <br />
-returns: `{address: string} // wallet address`
+```
+const privateKey = await solanaController.exportPrivateKey(address);
+```
 
-#### exportPrivateKey()
+### Get all accounts in the keyring
 
-This function is used to export the provate key for the generated address. <br />
-**parameters:** - <br />
-**returns:** `{privateKey: string} // address private key`
+```
+const privateKey = await solanaController.getAccounts();
+```
 
-#### signTransaction(transaction: _TransactionObj_ , connectionUrl: _string_ )
+### Sign a transaction
 
-This function is used to sign a transaction off-chain and then send it to the network.<br /> Transactions are of 4 types:
+```
+const signedTx = await solanaController.signTransaction(solanaTx: TransactionObj);
+
+solanaTx: {from, to, amount}
+```
 
 1. SOL transfer:<br />
    Trasaction to transfer SOL from one wallet/address to another.<br />The transaction object is of the following type:
@@ -42,7 +55,8 @@ TransactionObj: {
         to, // destination address
         amount, // amount
     },
-    txnType: NATIVE_TRANSFER // type constant
+    txnType: NATIVE_TRANSFER, // type constant
+    from: // sender address
 }
 ```
 
@@ -57,7 +71,8 @@ TransactionObj: {
         memo // any memo send by user
         token // token address
     },
-    txnType: TOKEN_TRANSFER // type constant
+    txnType: TOKEN_TRANSFER, // type constant
+    from: // sender address
 }
 ```
 
@@ -71,7 +86,8 @@ TransactionObj: {
         programId, // programId of the contract
         bufferData // data to send in buffer format
     },
-    txnType: CONTRACT_TRANSACTION // type constant
+    txnType: CONTRACT_TRANSACTION, // type constant
+    from: // sender address
 }
 ```
 
@@ -84,7 +100,8 @@ TransactionObj: {
         amount: 1000, // amount
         decimals: 2, // decimal places
    },
-   txnType: MINT_NEW_TOKEN // type constant
+   txnType: MINT_NEW_TOKEN, // type constant
+   from: // sender address
 }
 ```
 
@@ -92,57 +109,25 @@ TransactionObj: {
 
 ```
 name: transaction,
-type: TransactionObj, // refer to the above 4 trancationObj types.
-
-name: connectionUrl, // SOLANA network URL
-type: string
+type: TransactionObj, // refer to the above 4 transactionObj types.
 ```
 
 **returns:** `{signedTransaction: Buffer} signed raw transaction`
 
-#### signMessage(message: _string_ )
-
-This function is used to sign a message. <br />
-**parameters:**
+### Sign a message
 
 ```
-name: message
-type: string
+const signedMsg = await solanaController.signMessage(msgString, address);
 ```
 
-**returns:** `{signedMessage: string} // signed message hex string`
-
-#### getAccounts()
-
-This function is used to get the wallet address. <br />
-**parameters:** - <br />
-**returns:** `{address: string} // wallet address`
-
-#### sendTransaction(rawTransaction: _Buffer_ | _UInt8Array_ , connectionUrl: _string_)
-
-This function is used send the signed transaction onto the chain. <br />
-**parameters:**
+### Get fees
 
 ```
-name: rawTransaction, // signed raw transaction (got from signedTransaction())
-type: Buffer | UInt8Array
-
-name: connectionUrl, // SOLANA network URL
-type: string
+const fees = await solanaController.getFee(address);
 ```
 
-**returns:** `{transactionDetails : string} // transaction hash`
-
-#### getFee(connectionUrl: _string_)
-
-This function is returns the fees in lamports which will be used for each signature. <br />
-That means if there are 5 signatures of a transaction then the total fees will be `5 * transactionFees` . <br />
-
-**parameters:**
+### Get balance
 
 ```
-name: connectionUrl, // SOLANA network URL
-type: string
+const balance = await getBalance(address, network); // if network !== TESTNET then it will fetch mainnet balance
 ```
-
-**returns:** `{transactionFees: integer} // transaction fees`

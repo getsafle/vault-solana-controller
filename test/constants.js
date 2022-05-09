@@ -3,9 +3,19 @@ module.exports = {
     HD_WALLET_24_MNEMONIC: 'begin pyramid grit rigid mountain stamp legal item result peace wealth supply satoshi elegant roof identify furnace march west chicken pen gorilla spot excuse',
 
     SOLANA_NETWORK: {
-        MAINNET: 'https://api.mainnet-beta.solana.com',
-        TESTNET: 'https://api.testnet.solana.com',
-        DEVNET: 'https://api.devnet.solana.com'
+        MAINNET: {
+            NETWORK: "MAINNET",
+            URL: 'https://api.mainnet-beta.solana.com',
+        },
+
+        TESTNET: {
+            NETWORK: "TESTNET",
+            URL: 'https://api.testnet.solana.com',
+        },
+        DEVNET: {
+            NETWORK: "DEVNET",
+            URL: 'https://api.devnet.solana.com'
+        }
     },
 
     TRANSACTION_TYPE: {
