@@ -187,5 +187,4 @@ describe('Controller test', () => {
         console.log("Signed message 3: ", signedMessage3)
     })
 
-
 })

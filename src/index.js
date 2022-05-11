@@ -28,7 +28,7 @@ class KeyringController {
 
   async addAccount() {
     const { mnemonic, address } = this.store.getState();
-    const accountDetails = helper.setupAccount(mnemonic, `m/44'/501'/${address.length}'/0'`)
+    const accountDetails = helper.setupAccount(mnemonic, helper.getHDPath(address.length))
     const _address = accountDetails.publicKey.toString()
     this.persistAllAddress(_address)
     return { address: _address }
@@ -46,7 +46,7 @@ class KeyringController {
     if (idx < 0)
       throw "Invalid address, the address is not available in the wallet"
 
-    const accountDetails = helper.setupAccount(mnemonic, `m/44'/501'/${idx}'/0'`)
+    const accountDetails = helper.setupAccount(mnemonic, helper.getHDPath(idx))
 
     // Works on sollet
     // console.log("`[${Array.from(wallet.provider.account.secretKey)}]` ", `[${Array.from(accountDetails.secretKey)}]`)
@@ -55,9 +55,9 @@ class KeyringController {
     // console.log("accountDetails.secretKey ", accountDetails.secretKey)
 
     // secret key string
-    // return { privateKey: accountDetails.secretKey.toString('hex') };
+    // return { privateKey: bs58.encode(accountDetails.secretKey) };
 
-    return { privateKey: `[${Array.from(accountDetails.secretKey)}]` };
+    return { privateKey: bs58.encode(accountDetails.secretKey) };
 
   }
 
@@ -100,7 +100,7 @@ class KeyringController {
       throw "Invalid address, the address is not available in the wallet"
 
     try {
-      const signer = helper.setupAccount(mnemonic, `m/44'/501'/${idx}'/0'`)
+      const signer = helper.setupAccount(mnemonic, helper.getHDPath(idx))
       const connection = new solanaWeb3.Connection(network, "confirmed")
 
       const isMainnet = networkType === MAINNET.NETWORK ? true : false
@@ -206,7 +206,7 @@ class KeyringController {
     if (idx < 0)
       throw "Invalid address, the address is not available in the wallet"
     try {
-      const accountDetails = helper.setupAccount(mnemonic, `m/44'/501'/${idx}'/0'`)
+      const accountDetails = helper.setupAccount(mnemonic, helper.getHDPath(idx))
       const msg = bs58.encode(Buffer.from(message))
       return { signedMessage: bs58.encode(nacl.sign.detached(bs58.decode(msg), accountDetails.secretKey)) };
     } catch (err) {
