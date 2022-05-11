@@ -255,8 +255,8 @@ const getBalance = async (address, networkType) => {
   try {
     const network = helper.getNetwork(networkType)
     const connection = new solanaWeb3.Connection(network, "confirmed")
-    const accInfo = await connection.getAccountInfo(new solanaWeb3.PublicKey(address))
-    return { balance: accInfo.lamports }
+    const accInfo = await connection.getAccountInfo(new solanaWeb3.PublicKey(address), 'confirmed')
+    return { balance: accInfo ? accInfo.lamports : 0 }
   } catch (err) {
     throw err
   }
