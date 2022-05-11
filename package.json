@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/getsafle/solana-wallet-controller.git"
+    "url": "git+https://github.com/getsafle/vault-solana-controller.git"
   },
   "keywords": [
     "solana",
@@ -22,12 +22,13 @@
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/getsafle/solana-wallet-controller/issues"
+    "url": "https://github.com/getsafle/vault-solana-controller/issues"
   },
-  "homepage": "https://github.com/getsafle/solana-wallet-controller#readme",
+  "homepage": "https://github.com/getsafle/vault-solana-controller#readme",
   "dependencies": {
     "@solana/web3.js": "^1.24.0",
     "bip39": "^2.2.0",
+    "bs58": "^5.0.0",
     "buffer-layout": "^1.2.2",
     "crypto-js": "^4.0.0",
     "ed25519-hd-key": "^1.2.0",
