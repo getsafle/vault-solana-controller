@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "engines": {
-    "node": ">= 10"
+    "node": ">= 11"
   },
   "main": "src/index.js",
   "scripts": {
@@ -26,7 +26,7 @@
   },
   "homepage": "https://github.com/getsafle/vault-solana-controller#readme",
   "dependencies": {
-    "@solana/web3.js": "^1.24.0",
+    "@solana/web3.js": "^1.42.0",
     "bip39": "^2.2.0",
     "bs58": "^5.0.0",
     "buffer-layout": "^1.2.2",
