@@ -1,0 +1,46 @@
+{
+  "name": "@getsafle/vault-solana-controller",
+  "version": "1.0.0",
+  "description": "",
+  "engines": {
+    "node": ">= 11"
+  },
+  "main": "src/index.js",
+  "scripts": {
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint --fix . --ext .js",
+    "test": "mocha --timeout 150000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/getsafle/vault-solana-controller.git"
+  },
+  "keywords": [
+    "solana",
+    "keyring"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/getsafle/vault-solana-controller/issues"
+  },
+  "homepage": "https://github.com/getsafle/vault-solana-controller#readme",
+  "dependencies": {
+    "@solana/web3.js": "^1.42.0",
+    "bip39": "^2.2.0",
+    "bs58": "^5.0.0",
+    "buffer-layout": "^1.2.2",
+    "crypto-js": "^4.0.0",
+    "ed25519-hd-key": "^1.2.0",
+    "hdkey": "^2.0.1",
+    "obs-store": "^4.0.3"
+  },
+  "devDependencies": {
+    "@metamask/eslint-config": "^4.0.0",
+    "eslint": "^7.7.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-mocha": "^8.0.0",
+    "eslint-plugin-node": "^11.1.0",
+    "mocha": "^8.1.3"
+  }
+}
